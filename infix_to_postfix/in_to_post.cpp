@@ -20,7 +20,10 @@ int main(){
                     stk.pop();
                 }
             }else if(bit == '*' || bit == '/'){
-
+                if(!stk.empty() && (stk.top() == '*' || stk.top() == '/') ){
+                    cout << stk.top();
+                    stk.pop();
+                }
                 stk.push(bit);
             }else if(bit == '+' || bit == '-'){
                 if(!stk.empty() && (stk.top() == '+' || stk.top() == '-') ){
@@ -28,6 +31,14 @@ int main(){
                     stk.pop();
                 }
                 stk.push(bit);
+            }else if(bit == '('){
+                stk.push(bit);
+            }else if(bit == ')'){
+                while(stk.top() != '('){
+                    cout << stk.top();
+                    stk.pop();
+                }
+                stk.pop();
             }
             cin.get(bit);
     //        cout << bit <<"OWO" <<endl;
