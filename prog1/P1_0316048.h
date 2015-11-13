@@ -36,7 +36,7 @@ protected:
     MatrixTerm *smArray; // array of terms
     int capacity; // size of smArray (pre-allocation)
     int rows, columns; // size of matrix
-    int terms=0;          // number of non-zero terms
+    int terms;          // number of non-zero terms
 };
 
 SparseMatrix::SparseMatrix(const SparseMatrix &sm){
@@ -59,63 +59,48 @@ SparseMatrix SparseMatrix::Add(SparseMatrix &b){
     int term_num=0;
     int i,j;
     double temp_value;
+    int temp_row,temp_col;
     tempMt = new MatrixTerm[terms+b.terms];
-    for(i=0;i<terms;i++){
-        temp_value = 0;
-        for(j=0;j<b.terms;j++){
-            if(smArray[i].row == b.smArray[j].row){
-                if(smArray[i].col == b.smArray[j].col){
-                    temp_value = smArray[i].value + b.smArray[j].value;
-                }
-            }
-        }
-        if(temp_value == 0) temp_value = smArray[i].value;
 
-        tempMt[term_num].row = smArray[i].row;
-        tempMt[term_num].col = smArray[i].col;
+    i=j=0;
+
+    while(i < terms || j <b.terms){                         //select this and b for i and j
+        if(smArray[i].row == b.smArray[j].row){
+            if(smArray[i].col == b.smArray[j].col){
+                temp_row = smArray[i].row;
+                temp_col = smArray[i].col;
+                temp_value = smArray[i].value + b.smArray[j].value;
+                i++,j++;
+            }else if(smArray[i].col > b.smArray[j].col){
+                    temp_row = smArray[i].row;
+                    temp_col = smArray[i].col;
+                    temp_value = smArray[i].value;
+                    i++;
+                }else{
+                    temp_row = b.smArray[j].value;
+                    temp_col = b.smArray[j].value;
+                    temp_value = b.smArray[j].value;
+                    j++;
+                }
+        }
+        else if(smArray[i].row > b.smArray[j].row){
+                temp_row = smArray[i].row;
+                temp_col = smArray[i].col;
+                temp_value = smArray[i].value;
+                i++;
+            }else{
+                temp_row = b.smArray[j].row;
+                temp_col = b.smArray[j].col;
+                temp_value = b.smArray[j].value;
+                j++;
+            }
+        tempMt[term_num].row = temp_row;
+        tempMt[term_num].col = temp_col;
         tempMt[term_num].value = temp_value;
         term_num++;
+
+
     }
-
-
-    //p have more terms than this
-    for(int i=0;i<b.terms;i++){
-        bool term_exist=false;
-        for(int j=0;j<term_num;j++){
-            if(b.smArray[i].row == tempMt[j].row){
-                if(b.smArray[i].col == tempMt[j].col){
-                    term_exist=true;
-                    break;
-                }
-            }
-        }
-        if(!term_exist){
-            tempMt[term_num].row = b.smArray[i].row;
-            tempMt[term_num].col = b.smArray[i].col;
-            tempMt[term_num].value = b.smArray[i].value;
-            term_num++;
-        }
-    }
-
-    MatrixTerm *swp_tmp;//for sorting
-
-    for(int i = 0; i<term_num ; i++){
-        for(int j=0; j< term_num-i-1;j++){
-            if(tempMt[j].row < tempMt[j+1].row){
-                swap(tempMt[j],tempMt[j+1]);
-            }
-        }
-    }
-    for(int i=0;i <term_num; i++){
-        for(int j=0; j<term_num-i-1; j++){
-            if(tempMt[j].row == tempMt[j+1].row){
-                if(tempMt[j].col < tempMt[j+1].col){
-                    swap(tempMt[j],tempMt[j+1]);
-                }
-            }
-        }
-    }
-
 
     delete [] smArray;
     smArray = tempMt;
@@ -157,11 +142,29 @@ void SparsePoly2D::SetTerms(const int *x_exp, const int *y_exp, const double *co
         delete [] smArray;
     }
     smArray = new MatrixTerm[n];
-
     for(int i=0;i<n;i++){
         smArray[i].row = x_exp[i];
         smArray[i].col = y_exp[i];
         smArray[i].value = coef[i];
+    }
+    for(int i=0;i<n;i++){                           //sort x
+        for(int j=0;j < n-i-1;j++){
+            if(smArray[j].row < smArray[j+1].row ){
+                swap(smArray[j].row,smArray[j+1].row);
+                swap(smArray[j].col,smArray[j+1].col);
+                swap(smArray[j].value,smArray[j+1].value);
+            }
+        }
+    }
+    for(int i=0;i<n;i++){                           //if x equal sort y
+        for(int j=0;j< n-i-1;j++){
+            if(smArray[j].row == smArray[j+1].row){
+                if(smArray[j].col < smArray[j+1].col){
+                    swap(smArray[j].col,smArray[j+1].col);
+                    swap(smArray[j].value,smArray[j+1].value);
+                }
+            }
+        }
     }
 }
 
