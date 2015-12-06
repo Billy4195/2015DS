@@ -32,6 +32,7 @@ public:
     pair<K,E>* Get(const K& k);
     pair<K,E>* Get(TreeNode<K,E>*,const K&);
     void Insert(const pair<K,E> &thePair);
+    TreeNode<K,E>* rInorderSuccessor(TreeNode<K,E>*);
 //private:
     TreeNode<K,E>* root;
 };
@@ -67,6 +68,7 @@ void BST<K,E>::Insert(const pair<K,E> &thePair){
         }
     }
     p = new TreeNode<K,E>(thePair);
+    //cout << p<<endl;
     if(root){
         if(thePair.first < pp->data.first){
             pp->leftChild = p;
@@ -80,9 +82,31 @@ void BST<K,E>::Insert(const pair<K,E> &thePair){
 }
 
 template<class K,class E>
+TreeNode<K,E>* BST<K,E>::rInorderSuccessor(TreeNode<K,E>* cur){
+    TreeNode<K,E> *temp;
+    if(cur->leftChild){
+        temp = cur->leftChild;
+        while(temp->rightChild){
+            temp = temp->rightChild;
+        }
+    }else{
+        if(cur->parent && cur == cur->parent->rightChild){  //leftchild
+            temp = cur->parent;
+        }else{
+            if(cur->parent && cur->parent->parent && cur->parent != root && cur->parent == cur->parent->parent->rightChild){
+                temp = cur->parent->parent;     //rightchild
+            }else{
+                temp = 0;                       //last node
+            }
+        }
+    }
+    return temp;
+}
+
+template<class K,class E>
 class PolyBST : public BST<K,E>{
     template<class Ko,class Eo>
-    friend ostream& operator<<(ostream& ,const PolyBST<Ko,Eo>&);
+    friend ostream& operator<<(ostream& ,PolyBST<Ko,Eo>&);
 public:
 //    PolyBST<K,E> operator+(PolyBST<K,E> &p1);
 
@@ -94,17 +118,44 @@ public:
 //}
 
 template<class Ko,class Eo>
-ostream& operator<<(ostream& os,const PolyBST<Ko,Eo>&p1){   // not finished
-    if(!p1.root) os<<"0"<<endl;
+ostream& operator<<(ostream& os,PolyBST<Ko,Eo>&p1){   // not finished
+    if(!p1.root){
+        os<<"0"<<endl;
+        return os;
+    }else{
+        TreeNode<Ko,Eo>* cur=p1.root;
+        //os << "OWO" <<cur->rightChild;
+        while(cur->rightChild){
+            cur = cur->rightChild;
+        }
+        //os << cur;
+        if(cur->data.second < 0){
+            os << "-"<<-cur->data.second;
+        }else{
+            os << cur->data.second;
+        }
+        os << "*x^" <<cur->data.first;
+
+        while(cur = p1.rInorderSuccessor(cur)){
+            if(cur->data.second < 0){
+                os << " - "<<-cur->data.second;
+            }else{
+                os << " + "<<cur->data.second;
+            }
+            os << "*x^" <<cur->data.first;
+        }
+        return os;
+    }
 }
 
 int main(){
-    pair<int,double> pr(1,1.4),pr1(2,1.1);
+    pair<int,double> pr(1,1.4),pr1(2,1.1),pr2(3,2);
     TreeNode<int,double> tn(pr);
     PolyBST<int,double> poly,poly1;
-    poly.Insert(pr);
     poly.Insert(pr1);
+    poly.Insert(pr);
+    poly.Insert(pr2);
     cout << poly.Get(2)->second <<endl;
-    cout << poly1;
+    cout << poly;
     return 0;
 }
