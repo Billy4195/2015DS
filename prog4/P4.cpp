@@ -108,41 +108,87 @@ class PolyBST : public BST<K,E>{
     template<class Ko,class Eo>
     friend ostream& operator<<(ostream& ,PolyBST<Ko,Eo>&);
 public:
-//    PolyBST<K,E> operator+(PolyBST<K,E> &p1);
+    PolyBST<K,E>& operator+(PolyBST<K,E> &);
+    PolyBST<K,E>& operator*(double);
 
 };
 
-//template<class K,class E>
-//PolyBST<K,E> PolyBST<K,E>::operator+(PolyBST<K,E> &p1){
-//
-//}
+template<class K,class E>       //waste time ---deep tree
+PolyBST<K,E>& PolyBST<K,E>::operator+(PolyBST<K,E> &p2){//not finished
+    TreeNode<K,E> *tn1 = this->root,*tn2 = p2.root;
+    PolyBST<K,E> *p3 = new PolyBST<K,E>;
+    while(tn1 && tn1->rightChild){             //get the max term
+        tn1 = tn1->rightChild;
+    }
+    while(tn2 && tn2->rightChild){             //get the max term
+        tn2 = tn2->rightChild;
+    }
+    while(tn1 && tn2){
+        if(tn1->data.first > tn2->data.first){      //if p1's term greater than p2's
+            p3->Insert(tn1->data);                  //put p1's term into p3
+            tn1 = this->rInorderSuccessor(tn1);     //next p1 term
+        }else if(tn1->data.first < tn2->data.first){//if p2's term greater than p1's
+            p3->Insert(tn2->data);                  //put p2's term into p3
+            tn2 = p2.rInorderSuccessor(tn2);        //next p2 term
+        }else{                                      //add p1's term and p2's term then put into p3
+            p3->Insert(pair<K,E>(tn1->data.first,tn1->data.second+tn2->data.second));
+            tn1 = this->rInorderSuccessor(tn1);     //next p1 and p2 term
+            tn2 = p2.rInorderSuccessor(tn2);
+        }
+
+    }
+    while(tn1){      //if p1 have more term
+        p3->Insert(tn1->data);                  //put p1's term into p3
+        tn1 = this->rInorderSuccessor(tn1);     //next p1 term
+    }
+    while(tn2){      //if p2 have more term
+        p3->Insert(tn2->data);                  //put p2's term into p3
+        tn2 = p2.rInorderSuccessor(tn2);        //next p2 term
+    }
+
+    return *p3;
+}
+
+template<class K,class E>           //it will change this's value
+PolyBST<K,E>& PolyBST<K,E>::operator*(double x){
+    TreeNode<K,E>* curT= this->root;
+    while(curT->rightChild){            //get the max term
+        curT = curT->rightChild;
+    }
+    while(curT){
+        curT->data.second *= x;         //coefficient multiply a const number
+        curT = this->rInorderSuccessor(curT);   //next term
+    }
+    return *this;
+
+}
 
 template<class Ko,class Eo>
-ostream& operator<<(ostream& os,PolyBST<Ko,Eo>&p1){   // not finished
+ostream& operator<<(ostream& os,PolyBST<Ko,Eo>&p1){
     if(!p1.root){
         os<<"0"<<endl;
         return os;
     }else{
         TreeNode<Ko,Eo>* cur=p1.root;
-        //os << "OWO" <<cur->rightChild;
-        while(cur->rightChild){
+        while(cur->rightChild){     //get the max term
             cur = cur->rightChild;
         }
-        //os << cur;
+        /****print max term****/
         if(cur->data.second < 0){
-            os << "-"<<-cur->data.second;
+            os << "-"<<-cur->data.second;   //print coefficient and if negative print -
         }else{
             os << cur->data.second;
         }
-        os << "*x^" <<cur->data.first;
-
-        while(cur = p1.rInorderSuccessor(cur)){
+        os << "*x^" <<cur->data.first;      //print exponent
+        /****end of max term****/
+        while(cur = p1.rInorderSuccessor(cur)){ //print other terms
             if(cur->data.second < 0){
-                os << " - "<<-cur->data.second;
+                os << " - "<<-cur->data.second; //print coefficient and if negative print -
             }else{
-                os << " + "<<cur->data.second;
+                os << " + "<<cur->data.second;  //print coefficient and if positive print +
             }
-            os << "*x^" <<cur->data.first;
+            if(cur->data.first >0)              //if exponent is 0 ,don't need to print exponent
+            os << "*x^" <<cur->data.first;      //print exponent
         }
         return os;
     }
@@ -155,7 +201,14 @@ int main(){
     poly.Insert(pr1);
     poly.Insert(pr);
     poly.Insert(pr2);
-    cout << poly.Get(2)->second <<endl;
-    cout << poly;
+    poly1.Insert(pair<int,double>(2,2));
+    poly1.Insert(pair<int,double>(0,1.3));
+    poly1.Insert(pair<int,double>(5,6.2));
+    //cout << poly.Get(2)->second <<endl;
+    cout << "poly1  " << poly1<<endl;
+    cout << "poly   " << poly<<endl;
+    cout << "poly*2 " << poly * 2.0<<endl;
+    poly = poly1 + poly;
+    cout << " poly1 + poly " <<poly <<endl;
     return 0;
 }
