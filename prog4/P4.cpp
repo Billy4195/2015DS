@@ -13,7 +13,7 @@ public:
     TreeNode(pair<K,E>,TreeNode* =0,TreeNode* =0,TreeNode* =0);
 //private:
     pair<K,E> data;
-    TreeNode *leftChild,*rightChild,*parent;
+    TreeNode<K,E> *leftChild,*rightChild,*parent;
 };
 
 template<class K,class E>
@@ -24,27 +24,34 @@ TreeNode<K,E>::TreeNode(pair<K,E> d,TreeNode* l,TreeNode* r,TreeNode* pa){
     parent = pa;
 }
 
-template<class K,class E>
+template<class K,class E>       //no memory release
 class BST{
 public:
-    BST(){root = 0;}
+    BST(){
+        header = new TreeNode<K,E>(pair<K,E>());    //header node
+        header->rightChild = header;
+    }
     BST(TreeNode<K,E> & tn);
+    TreeNode<K,E>* rootNode(){
+        return header->leftChild;
+    }
     pair<K,E>* Get(const K& k);
     pair<K,E>* Get(TreeNode<K,E>*,const K&);
     void Insert(const pair<K,E> &thePair);
     TreeNode<K,E>* rInorderSuccessor(TreeNode<K,E>*);
-//private:
-    TreeNode<K,E>* root;
+    TreeNode<K,E>* preorderSuccessor(TreeNode<K,E>*);
+private:
+    TreeNode<K,E>* header;
 };
 
 template<class K,class E>
 BST<K,E>::BST(TreeNode<K,E> & tn){
-    root = &tn;
+    header->leftChild = &tn;
 }
 
 template<class K,class E>
 pair<K,E>* BST<K,E>::Get(const K& k){
-    return Get(root,k);
+    return Get(rootNode(),k);
 }
 
 template<class K,class E>
@@ -57,7 +64,7 @@ pair<K,E>* BST<K,E>::Get(TreeNode<K,E>* p,const K& k){
 
 template<class K,class E>
 void BST<K,E>::Insert(const pair<K,E> &thePair){
-    TreeNode<K,E> *p = root,*pp =0;
+    TreeNode<K,E> *p = rootNode(),*pp =0;
     while(p){
         pp = p;
         if(thePair.first < p->data.first) p = p->leftChild;
@@ -69,7 +76,7 @@ void BST<K,E>::Insert(const pair<K,E> &thePair){
     }
     p = new TreeNode<K,E>(thePair);
     //cout << p<<endl;
-    if(root){
+    if(rootNode()){
         if(thePair.first < pp->data.first){
             pp->leftChild = p;
         }
@@ -77,13 +84,13 @@ void BST<K,E>::Insert(const pair<K,E> &thePair){
 
         p->parent = pp;
     }else{
-        root = p;
+        header->leftChild = p;
     }
 }
 
-template<class K,class E>
-TreeNode<K,E>* BST<K,E>::rInorderSuccessor(TreeNode<K,E>* cur){
-    TreeNode<K,E> *temp;
+template<class K,class E>//end case have problem
+TreeNode<K,E>* BST<K,E>::rInorderSuccessor(TreeNode<K,E>* cur){     //reverse inorder successor start from rightmost to leftmost
+    TreeNode<K,E> *temp=0;
     if(cur->leftChild){
         temp = cur->leftChild;
         while(temp->rightChild){
@@ -93,7 +100,7 @@ TreeNode<K,E>* BST<K,E>::rInorderSuccessor(TreeNode<K,E>* cur){
         if(cur->parent && cur == cur->parent->rightChild){  //leftchild
             temp = cur->parent;
         }else{
-            if(cur->parent && cur->parent->parent && cur->parent != root && cur->parent == cur->parent->parent->rightChild){
+            if(cur->parent && cur->parent->parent && cur->parent != rootNode() && cur->parent == cur->parent->parent->rightChild){
                 temp = cur->parent->parent;     //rightchild
             }else{
                 temp = 0;                       //last node
@@ -104,18 +111,30 @@ TreeNode<K,E>* BST<K,E>::rInorderSuccessor(TreeNode<K,E>* cur){
 }
 
 template<class K,class E>
+TreeNode<K,E>* BST<K,E>::preorderSuccessor(TreeNode<K,E>* cur){
+    if(cur->leftChild){
+        return cur->leftChild;
+    }
+    while(!cur->parent->rightChild){        //find end condition
+        cur = cur->parent;
+    }
+    return cur->parent->rightChild;
+}
+
+template<class K,class E>
 class PolyBST : public BST<K,E>{
     template<class Ko,class Eo>
     friend ostream& operator<<(ostream& ,PolyBST<Ko,Eo>&);
 public:
     PolyBST<K,E>& operator+(PolyBST<K,E> &);
+    PolyBST<K,E>& operator-(PolyBST<K,E> &);
     PolyBST<K,E>& operator*(double);
 
 };
 
 template<class K,class E>       //waste time ---deep tree
-PolyBST<K,E>& PolyBST<K,E>::operator+(PolyBST<K,E> &p2){//not finished
-    TreeNode<K,E> *tn1 = this->root,*tn2 = p2.root;
+PolyBST<K,E>& PolyBST<K,E>::operator+(PolyBST<K,E> & p2){
+    TreeNode<K,E> *tn1 = this->rootNode(),*tn2 = p2.rootNode();
     PolyBST<K,E> *p3 = new PolyBST<K,E>;
     while(tn1 && tn1->rightChild){             //get the max term
         tn1 = tn1->rightChild;
@@ -149,9 +168,15 @@ PolyBST<K,E>& PolyBST<K,E>::operator+(PolyBST<K,E> &p2){//not finished
     return *p3;
 }
 
+template<class K,class E>
+PolyBST<K,E>& PolyBST<K,E>::operator-(PolyBST<K,E> &p2){
+    PolyBST<K,E> *p3 = &(p2 * -1);
+    return *this+*p3;
+}
+
 template<class K,class E>           //it will change this's value
 PolyBST<K,E>& PolyBST<K,E>::operator*(double x){
-    TreeNode<K,E>* curT= this->root;
+    TreeNode<K,E>* curT= this->rootNode();
     while(curT->rightChild){            //get the max term
         curT = curT->rightChild;
     }
@@ -165,11 +190,11 @@ PolyBST<K,E>& PolyBST<K,E>::operator*(double x){
 
 template<class Ko,class Eo>
 ostream& operator<<(ostream& os,PolyBST<Ko,Eo>&p1){
-    if(!p1.root){
+    if(!p1.rootNode()){
         os<<"0"<<endl;
         return os;
     }else{
-        TreeNode<Ko,Eo>* cur=p1.root;
+        TreeNode<Ko,Eo>* cur=p1.rootNode();
         while(cur->rightChild){     //get the max term
             cur = cur->rightChild;
         }
@@ -196,7 +221,7 @@ ostream& operator<<(ostream& os,PolyBST<Ko,Eo>&p1){
 
 int main(){
     pair<int,double> pr(1,1.4),pr1(2,1.1),pr2(3,2);
-    TreeNode<int,double> tn(pr);
+    //TreeNode<int,double> tn(pr);
     PolyBST<int,double> poly,poly1;
     poly.Insert(pr1);
     poly.Insert(pr);
