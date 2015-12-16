@@ -146,25 +146,23 @@ TreeNode<K,E>* BST<K,E>::PreorderSuccessor(TreeNode<K,E>* cur){
 
 }
 
-template<class K,class E>
-class PolyBST : public BST<K,E>{
-    template<class Ko,class Eo>
-    friend ostream& operator<<(ostream& ,PolyBST<Ko,Eo>&);
+
+class PolyBST : public BST<int,double>{
+    friend ostream& operator<<(ostream& ,PolyBST&);
 public:
-    PolyBST<K,E>& operator+(PolyBST<K,E> &);
-    PolyBST<K,E>& operator-(PolyBST<K,E> &);
-    PolyBST<K,E>& operator*(double);
-    PolyBST<K,E>& operator*(PolyBST<K,E> &);
-    void setTerm(const K&,const E&,int =0);
+    PolyBST& operator+(PolyBST &);
+    PolyBST& operator-(PolyBST &);
+    PolyBST& operator*(double);
+    PolyBST& operator*(PolyBST &);
+    void setTerm(const int&,const double&,int =0);
 
 };
 
 
-
-template<class K,class E>       //waste time ---deep tree
-PolyBST<K,E>& PolyBST<K,E>::operator+(PolyBST<K,E> & p2){
-    TreeNode<K,E> *tn1 = this->rootNode(),*tn2 = p2.rootNode();
-    PolyBST<K,E> *p3 = new PolyBST<K,E>;
+      //waste time ---deep tree
+PolyBST& PolyBST::operator+(PolyBST & p2){
+    TreeNode<int,double> *tn1 = this->rootNode(),*tn2 = p2.rootNode();
+    PolyBST *p3 = new PolyBST;
     while(tn1 && tn1->rightChild){             //get the max term
         tn1 = tn1->rightChild;
     }
@@ -179,7 +177,7 @@ PolyBST<K,E>& PolyBST<K,E>::operator+(PolyBST<K,E> & p2){
             p3->Insert(tn2->data);                  //put p2's term into p3
             tn2 = p2.rInorderSuccessor(tn2);        //next p2 term
         }else{                                      //add p1's term and p2's term then put into p3
-            p3->Insert(pair<K,E>(tn1->data.first,tn1->data.second+tn2->data.second));
+            p3->setTerm(tn1->data.first,tn1->data.second+tn2->data.second);
             tn1 = this->rInorderSuccessor(tn1);     //next p1 and p2 term
             tn2 = p2.rInorderSuccessor(tn2);
         }
@@ -197,16 +195,15 @@ PolyBST<K,E>& PolyBST<K,E>::operator+(PolyBST<K,E> & p2){
     return *p3;
 }
 
-template<class K,class E>
-PolyBST<K,E>& PolyBST<K,E>::operator-(PolyBST<K,E> &p2){
-    PolyBST<K,E> *p3 = &(p2 * -1);
+PolyBST& PolyBST::operator-(PolyBST &p2){
+    PolyBST *p3 = &(p2 * -1);
     return *this+*p3;
 }
 
-template<class K,class E>
-PolyBST<K,E>& PolyBST<K,E>::operator*(double x){
-    TreeNode<K,E>* curT= this->rootNode();
-    PolyBST<K,E> *p1 = new PolyBST<K,E>;
+
+PolyBST& PolyBST::operator*(double x){
+    TreeNode<int,double>* curT= this->rootNode();
+    PolyBST *p1 = new PolyBST;
     while(curT){
         p1->setTerm(curT->data.first,curT->data.second*x);
         curT = this->PreorderSuccessor(curT);
@@ -216,10 +213,9 @@ PolyBST<K,E>& PolyBST<K,E>::operator*(double x){
 
 }
 
-template<class K,class E>
-PolyBST<K,E>& PolyBST<K,E>::operator*(PolyBST<K,E> &p2){
-    PolyBST<K,E> *p3 = new PolyBST<K,E>;
-    TreeNode<K,E> *curT1,*curT2;
+PolyBST& PolyBST::operator*(PolyBST &p2){
+    PolyBST *p3 = new PolyBST;
+    TreeNode<int,double> *curT1,*curT2;
     curT1 = this->rootNode();
     while(curT1){
         curT2 = p2.rootNode();
@@ -233,18 +229,18 @@ PolyBST<K,E>& PolyBST<K,E>::operator*(PolyBST<K,E> &p2){
 }
 
 
-template<class K,class E>
-void PolyBST<K,E>::setTerm(const K& exp,const E& coe,int mode){     //mode 1 --- add coefficient
-    this->Insert( pair<K,E>(exp,coe),mode );
+
+void PolyBST::setTerm(const int& exp,const double& coe,int mode){     //mode 1 --- add coefficient
+    this->Insert( pair<int,double>(exp,coe),mode );
 }
 
-template<class Ko,class Eo>
-ostream& operator<<(ostream& os,PolyBST<Ko,Eo>&p1){
+
+ostream& operator<<(ostream& os,PolyBST&p1){
     if(!p1.rootNode()){
         os<<"0"<<endl;
         return os;
     }else{
-        TreeNode<Ko,Eo>* cur=p1.rootNode();
+        TreeNode<int,double>* cur=p1.rootNode();
         while(cur->rightChild){     //get the max term
             cur = cur->rightChild;
         }

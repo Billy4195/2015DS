@@ -1,7 +1,7 @@
 #include "P4_0316048.h"
 int main()
 {
-  PolyBST<int,double> p1, p2, p3;
+  PolyBST p1, p2, p3;
   p1.setTerm(2,2);
   p1.setTerm(0,-1);
   cout << "p1 = " << p1 << endl;  // 2*x^2 ¡V 1
@@ -18,7 +18,7 @@ int main()
   p3 = p1 * 2;
   cout << "p1*2 = " << p3 << endl; // 6*x^2 + 4*x^1
   p3 = p1 * 2 - p2;
-  cout << "p1*2¡Vp2 = " << p3 << endl; // 4*x^2 + 4*x^1 ¡V 1
+  cout << "p1*2-p2 = " << p3 << endl; // 4*x^2 + 4*x^1 - 1
   system("pause");
   return 0;
 }
